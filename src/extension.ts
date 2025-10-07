@@ -2,17 +2,8 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import ServiceDownloadProvider, * as fileProvider from './test';
-
-
-import {
-    IConfigUtils,
-    IStatusView,
-    IPackage,
-    PackageError,
-    IHttpClient,
-    IDecompressProvider,
-} from "./interfaces";
+import ServiceDownloadProvider, * as downlaodProvider from './ServiceDownloadProvider';
+import  FileProvider, * as fileProvider from './FileProvider';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -30,6 +21,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	var test1 = new ServiceDownloadProvider();
 	var testing = await test1.downloadFile(link, installPath);
 	var t = await test1.decompressTar(zipFile, installPath);
+
+	var fileProvider = new FileProvider();
+
+	var output = await fileProvider.formatWithCliTool("SELECT * FROM dbo", cliPath);
 
 	const test = os. platform() === 'win32';
 	// The command has been defined in the package.json file

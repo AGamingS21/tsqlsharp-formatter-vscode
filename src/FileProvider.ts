@@ -6,31 +6,46 @@ import * as vscode from 'vscode';
 
 
 
-export class FileProvider {
+export default class FileProvider {
 
-    formatWithCliTool(content: string): string {
+    async formatWithCliTool(content: string, cliPath: string): Promise<string> {
         var output = '';
-        try {
-            var child =  spawn('/home/$USER/.local/bin/tsqlsharp-formatter', ['text ', '--input ', content], {
-            });
-            child.stdout.on('data',
-            function (data) {
-                console.log('ls command output: ' + data);
-                output = data;
-            });
-            child.stderr.on('data', function (data) {
-            //throw errors
-            console.log('stderr: ' + data);
-            });
-        }
+        console.log(cliPath);
+        const child = spawn(cliPath, [`text`, `--input`, `'${content}'`], { shell: true });
+        return new Promise((resolve, reject) => {
+            
+            // const child =  spawn(`${cliPath} text --input '${content}'`);
 
-        catch (error) {
-            // vscode.window.showErrorMessage('Formatting failed: ' + error.message);
-            console.log(error);
-            output = 'error';
-        }
-        // this will need to return the content
-        return output;
+            let stdout = '';
+            let stderr = '';
+
+            // Capture stdout
+            child.stdout.on('data', (data) => {
+                stdout += data.toString();
+            });
+
+            // Capture stderr
+            child.stderr.on('data', (data) => {
+                stderr += data.toString();
+            });
+
+            // Error starting the process
+            child.on('error', (error) => {
+                reject(error);
+            });
+
+            // Process exited
+            child.on('close', (code) => {
+                if (code === 0) {
+                    resolve(stdout.trim()); // Return only stdout as string
+                } else {
+                    reject(new Error(`Command failed with code ${code}: ${stderr.trim()}`));
+                }
+            });
+        });
+        
+        
+
     }
 
    
