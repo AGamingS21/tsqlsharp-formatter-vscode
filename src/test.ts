@@ -12,7 +12,7 @@ export default class ServiceDownloadProvider {
     
     async  downloadFile(url: string, dest: string): Promise<void> {
         const res = await fetch(url);
-        if (!res.ok) throw new Error(`Failed to download: ${res.statusText}`);
+        if (!res.ok) {throw new Error(`Failed to download: ${res.statusText}`);}
         
         if(await fs.existsSync(dest))
         {
