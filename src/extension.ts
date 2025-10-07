@@ -25,6 +25,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	// var sql = new SqlFormattingProvider();
 	// await sql.Test(cliPath);
 	
+
+	// to do: 
+	// Get working on windows
+	// manage the installation of cli and check for new versions.
+
 	context.subscriptions.push(
 		vscode.languages.registerDocumentFormattingEditProvider(
 		'sql',
