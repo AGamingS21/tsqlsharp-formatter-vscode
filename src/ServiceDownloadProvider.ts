@@ -1,16 +1,30 @@
-import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as DecompressTar from "tar";
 import * as yauzl from "yauzl";
 import * as path from "path";
 import fetch from 'node-fetch';
-import extract from 'extract-zip';
-import { Console } from 'console';
+import { IPackage } from './interfaces';
+
 export default class ServiceDownloadProvider {
 
 
-    
-    async  downloadFile(url: string, dest: string): Promise<void> {
+    public async getLatestVersion(url: string)
+    {
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log(result);
+            return result.tag_name;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    public async downloadFile(url: string, dest: string): Promise<void> {
         const res = await fetch(url);
         if (!res.ok) {throw new Error(`Failed to download: ${res.statusText}`);}
         
@@ -35,13 +49,12 @@ export default class ServiceDownloadProvider {
         });
     }
 
-        public async decompressTar(tmpFileName: string, installPath: string): Promise<void> {
+    private decompressTar(pkg: IPackage): Promise<void> {
         let totalFiles = 0;
-        console.log(installPath);
-        return await DecompressTar.extract(
+        return DecompressTar.extract(
             {
-                file: tmpFileName,
-                cwd: installPath,
+                file: pkg.tmpFile.name,
+                cwd: pkg.installPath,
                 onentry: () => {
                     totalFiles++;
                 },
@@ -55,13 +68,106 @@ export default class ServiceDownloadProvider {
         );
     }
 
-    // public decompress(tmpFileName: string, installPath: string): Promise<void> {
-    //     if (pkg.isZipFile) {
-    //         return decompressZip(pkg, logger);
-    //     } else {
-    //         return this.decompressTar(pkg, logger);
-    //     }
-    // }
+    public decompress(pkg: IPackage): Promise<void> {
+        if (pkg.isZipFile) {
+            return this.decompressZip(pkg);
+        } else {
+            return this.decompressTar(pkg);
+        }
+    }
+
+    private decompressZip(pkg: IPackage): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            yauzl.open(pkg.tmpFile.name, { lazyEntries: true }, (err, zipfile) => {
+                if (err) {
+                    console.log(`[ERROR] ${err}`);
+                    reject(err);
+                    return;
+                }
+
+                zipfile.readEntry();
+
+                zipfile.on("entry", (entry) => {
+                    if (/\/$/.test(entry.fileName)) {
+                        // Directory file names end with '/'
+                        const dirPath = path.join(pkg.installPath, entry.fileName);
+
+                        // Create directory
+                        fs.mkdir(dirPath, { recursive: true }, (err) => {
+                            if (err) {
+                                console.log(
+                                    `[ERROR] Failed to create directory ${dirPath}: ${err}`,
+                                );
+                                reject(err);
+                                return;
+                            }
+                            zipfile.readEntry();
+                        });
+                    } else {
+                        // File entry
+                        const filePath = path.join(pkg.installPath, entry.fileName);
+                        const dirPath = path.dirname(filePath);
+
+                        // Ensure parent directory exists first
+                        fs.mkdir(dirPath, { recursive: true }, (err) => {
+                            if (err) {
+                                console.log(
+                                    `[ERROR] Failed to create directory ${dirPath}: ${err}`,
+                                );
+                                reject(err);
+                                return;
+                            }
+
+                            // Now extract the file
+                            zipfile.openReadStream(entry, (err, readStream) => {
+                                if (err) {
+                                    console.log(`[ERROR] ${err}`);
+                                    reject(err);
+                                    return;
+                                }
+
+                                const writeStream = fs.createWriteStream(filePath);
+
+                                // Handle write stream errors
+                                writeStream.on("error", (err) => {
+                                    console.log(
+                                        `[ERROR] Failed to write ${filePath}: ${err}`,
+                                    );
+                                    reject(err);
+                                });
+
+                                // Wait for write stream to finish, not just read stream
+                                writeStream.on("close", () => {
+                                    console.log(`Extracted: ${entry.fileName}`);
+                                    zipfile.readEntry();
+                                });
+
+                                // Handle read stream errors
+                                readStream.on("error", (err) => {
+                                    console.log(
+                                        `[ERROR] Read error for ${entry.fileName}: ${err}`,
+                                    );
+                                    reject(err);
+                                });
+
+                                readStream.pipe(writeStream);
+                            });
+                        });
+                    }
+                });
+
+                zipfile.on("end", () => {
+                    console.log(`Done! Files unpacked.\n`);
+                    resolve();
+                });
+
+                zipfile.on("error", (err) => {
+                    console.log(`[ERROR] Zipfile error: ${err}`);
+                    reject(err);
+                });
+            });
+        });
+    }
 
 
 }
