@@ -2,7 +2,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import ServiceDownloadProvider, * as downlaodProvider from './serviceDownloadProvider';
+import ServiceDownloadProvider, * as downloadProvider from './serviceDownloadProvider';
 import SqlFormattingProvider, * as sqlFormattingProvider from './SqlFormattingProvider';
 import * as con from './constants';
 import * as fs from 'fs';
@@ -22,14 +22,20 @@ export async function activate(context: vscode.ExtensionContext) {
 	var installPath = context.globalStorageUri.fsPath + con.installPath;
 	var cliPath = '';
 	var zipFile = url;
+	var zipFileName = '';
+	var isZipFile = false;
 	if (platform === 'win32' && arch === 'x64') {
 		url = con.linkwindows;
-		zipFile = installPath + '/tsqlsharp-formatter-windows-x64.tar.gz';
+		isZipFile = true;
+		zipFileName = con.zipFileNameWindows;
+		zipFile = installPath + con.zipFileNameWindows;
 		cliPath = installPath + con.cliWindows;
 	}
 	else if (platform === 'linux' && arch === 'x64') {
 		url = con.linklinux;
-		zipFile = installPath + '/tsqlsharp-formatter-linux-x64.tar.gz';
+		isZipFile = false;
+		zipFileName = con.zipFileNameLinux;
+		zipFile = installPath + con.zipFileNameLinux;
 		cliPath = installPath + con.cliLinux;
 	}
 	else{
@@ -44,12 +50,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	if(currentCliVersion === undefined || latestVersion !== currentCliVersion || !cliExists)
 	{
 		
-		await dwnloadProv.downloadFile(url, installPath);
+		await dwnloadProv.downloadFile(url, installPath, zipFileName);
 		let pkg: IPackage = {
 			installPath: installPath,
 			url: url,
 			tmpFileName: zipFile,
-			isZipFile: false
+			isZipFile: isZipFile
 		};
 		await dwnloadProv.decompress(pkg);
 		context.globalState.update('cliVersion', latestVersion);
@@ -63,7 +69,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.languages.registerDocumentFormattingEditProvider(
 		'sql',
-		new SqlFormattingProvider(),
+		new SqlFormattingProvider(cliPath),
 		)
 	);
 	

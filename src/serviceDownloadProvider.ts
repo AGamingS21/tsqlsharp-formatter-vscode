@@ -24,7 +24,7 @@ export default class ServiceDownloadProvider {
             console.log(error);
         }
     }
-    public async downloadFile(url: string, dest: string): Promise<void> {
+    public async downloadFile(url: string, dest: string, zipFileName: string): Promise<void> {
         const res = await fetch(url);
         if (!res.ok) {throw new Error(`Failed to download: ${res.statusText}`);}
         
@@ -38,7 +38,7 @@ export default class ServiceDownloadProvider {
             await fs.mkdirSync(dest, { recursive: true }); // recursive: true creates nested directories if needed
         }
 
-        const fileStream = await fs.createWriteStream(dest + '/tsqlsharp-formatter-linux-x64.tar.gz');
+        const fileStream = await fs.createWriteStream(dest + zipFileName);
         
         console.log(fileStream.path);
 

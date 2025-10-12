@@ -1,16 +1,21 @@
 import * as vscode from 'vscode';
 import  FileProvider, * as fileProvider from './FileProvider';
+import * as path from 'path';
+import * as fs from 'fs';
 
 
 
 export default class SqlFormattingProvider implements vscode.DocumentFormattingEditProvider 
 {
+  private cliPath: string;
+  constructor(private cliPathString: string) {
+        this.cliPath = cliPathString;        
+    }
     public async Test(text: string) : Promise<string> {
      
-        const cliPath =  '~/.config/Code/User/globalStorage/undefined_publisher.tsqlsharp/tsqlsharp/tsqlsharp-formatter';
         var fileProvider = new FileProvider();
 
-	    var output =  await fileProvider.formatWithCliTool(text, cliPath);
+	    var output =  await fileProvider.formatWithCliTool(text, this.cliPath);
 
         var parsed = JSON.parse(output);
         return parsed.Output;

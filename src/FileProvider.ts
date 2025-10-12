@@ -11,10 +11,8 @@ export default class FileProvider {
     async formatWithCliTool(content: string, cliPath: string): Promise<string> {
         var output = '';
         console.log(cliPath);
-        const child = spawn(cliPath, [`text`, `--input`, `'${content}'`], { shell: true });
+        const child = spawn(cliPath, [`text`, `--input`, `"${content}"`], { shell: true });
         return new Promise((resolve, reject) => {
-            
-            // const child =  spawn(`${cliPath} text --input '${content}'`);
 
             let stdout = '';
             let stderr = '';
