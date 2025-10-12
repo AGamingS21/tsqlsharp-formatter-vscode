@@ -1,2 +1,6 @@
 node_modules
 out
+tsqlsharp-0.0.1/\[Content_Types].xml
+.gitignore
+tsqlsharp-0.0.1/extension.vsixmanifest
+*.vsix

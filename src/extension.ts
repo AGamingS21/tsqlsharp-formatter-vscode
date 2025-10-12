@@ -2,7 +2,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import ServiceDownloadProvider, * as downlaodProvider from './ServiceDownloadProvider';
+import ServiceDownloadProvider, * as downlaodProvider from './serviceDownloadProvider';
 import SqlFormattingProvider, * as sqlFormattingProvider from './SqlFormattingProvider';
 import * as con from './constants';
 import * as fs from 'fs';
@@ -56,8 +56,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 	
 	// to do: 
-	// push to vscode store or create vsix for me to trial out
-	// clean up activate function code and constant code. Also remo
+	// create vsix for me to trial out
+	// clean up activate function code and constant code. Also remove external references
+	// once working on linux and windows push to vscode store and setup pipeline.
 
 	context.subscriptions.push(
 		vscode.languages.registerDocumentFormattingEditProvider(
