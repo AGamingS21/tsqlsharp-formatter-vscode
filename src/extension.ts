@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import ServiceDownloadProvider, * as downlaodProvider from './ServiceDownloadProvider';
 import SqlFormattingProvider, * as sqlFormattingProvider from './SqlFormattingProvider';
 import * as con from './constants';
+import * as fs from 'fs';
 import { IPackage } from './interfaces';
 
 // This method is called when your extension is activated
@@ -19,13 +20,17 @@ export async function activate(context: vscode.ExtensionContext) {
 	var pkg;
 	var url = '';
 	var installPath = context.globalStorageUri.fsPath + con.installPath;
+	var cliPath = '';
+	var zipFile = url;
 	if (platform === 'win32' && arch === 'x64') {
 		url = con.linkwindows;
-		
+		zipFile = installPath + '/tsqlsharp-formatter-windows-x64.tar.gz';
+		cliPath = installPath + con.cliWindows;
 	}
 	else if (platform === 'linux' && arch === 'x64') {
 		url = con.linklinux;
-		
+		zipFile = installPath + '/tsqlsharp-formatter-linux-x64.tar.gz';
+		cliPath = installPath + con.cliLinux;
 	}
 	else{
 		console.log(`ERROR: the platform ${platform} or architecture ${arch} is not valid. Currenlty windows and linux x64 are supported.`);
@@ -35,33 +40,24 @@ export async function activate(context: vscode.ExtensionContext) {
 	
 	var latestVersion = await dwnloadProv.getLatestVersion(con.linklatestrelease);
 	
-	if(currentCliVersion === undefined || latestVersion !== currentCliVersion)
+	var cliExists = fs.existsSync(cliPath);
+	if(currentCliVersion === undefined || latestVersion !== currentCliVersion || !cliExists)
 	{
 		
-		dwnloadProv.downloadFile(url, installPath);
+		await dwnloadProv.downloadFile(url, installPath);
 		let pkg: IPackage = {
 			installPath: installPath,
 			url: url,
-			tmpFile: undefined,
+			tmpFileName: zipFile,
 			isZipFile: false
 		};
-		dwnloadProv.decompress(pkg);
+		await dwnloadProv.decompress(pkg);
 		context.globalState.update('cliVersion', latestVersion);
 	}
 	
-
-
-	
-	// download cli. 
-	// How to make sure that its easy across multiple verions?
-	
-
-	
-	// var testing = await test1.downloadFile(link, installPath);
-	// var t = await test1.decompressTar(zipFile, installPath);
-	
 	// to do: 
 	// push to vscode store or create vsix for me to trial out
+	// clean up activate function code and constant code. Also remo
 
 	context.subscriptions.push(
 		vscode.languages.registerDocumentFormattingEditProvider(

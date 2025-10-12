@@ -38,7 +38,7 @@ export default class ServiceDownloadProvider {
             await fs.mkdirSync(dest, { recursive: true }); // recursive: true creates nested directories if needed
         }
 
-        const fileStream = await fs.createWriteStream(dest + '/tsqlsharp-formatter-0.0.2-linux-amd64.tar.gz');
+        const fileStream = await fs.createWriteStream(dest + '/tsqlsharp-formatter-linux-x64.tar.gz');
         
         console.log(fileStream.path);
 
@@ -53,7 +53,7 @@ export default class ServiceDownloadProvider {
         let totalFiles = 0;
         return DecompressTar.extract(
             {
-                file: pkg.tmpFile.name,
+                file: pkg.tmpFileName,
                 cwd: pkg.installPath,
                 onentry: () => {
                     totalFiles++;
@@ -78,7 +78,7 @@ export default class ServiceDownloadProvider {
 
     private decompressZip(pkg: IPackage): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            yauzl.open(pkg.tmpFile.name, { lazyEntries: true }, (err, zipfile) => {
+            yauzl.open(pkg.tmpFileName, { lazyEntries: true }, (err, zipfile) => {
                 if (err) {
                     console.log(`[ERROR] ${err}`);
                     reject(err);
