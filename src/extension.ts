@@ -61,6 +61,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 	
 	// to do: 
+	// update cli to be a json input instead of string. This may resolve issues of windows not accepting it??.
 	// Better logging on what the output is from the results. output keeps disappearing?? Seems to only happen on windows version??
 	// clean up activate function code and constant code. Also remove external references
 	// make an ilogger

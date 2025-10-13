@@ -16,7 +16,7 @@ export default class SqlFormattingProvider implements vscode.DocumentFormattingE
     public async Test(text: string) : Promise<string> {
      
       var fileProvider = new FileProvider();
-
+      this.logger.appendLine(`input for tsqlsharp cli: ${text}`);
 	    var output =  await fileProvider.formatWithCliTool(text, this.cliPath);
       this.logger.appendLine(`Output from tsqlsharp cli: ${output}`);
 	    this.logger.show(true);
