@@ -17,7 +17,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const os = require('os'); 
 	const platform = os.platform();
 	const arch = os.arch();
-	var pkg;
 	var url = '';
 	var installPath = context.globalStorageUri.fsPath + con.installPath;
 	var cliPath = '';
@@ -62,14 +61,19 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 	
 	// to do: 
-	// create vsix for me to trial out
+	// Better logging on what the output is from the results. output keeps disappearing?? Seems to only happen on windows version??
 	// clean up activate function code and constant code. Also remove external references
+	// make an ilogger
 	// once working on linux and windows push to vscode store and setup pipeline.
+
+	const logChannel = vscode.window.createOutputChannel("tsqlsharp-formatter", { log: true });
+	
+	
 
 	context.subscriptions.push(
 		vscode.languages.registerDocumentFormattingEditProvider(
 		'sql',
-		new SqlFormattingProvider(cliPath),
+		new SqlFormattingProvider(cliPath, logChannel),
 		)
 	);
 	

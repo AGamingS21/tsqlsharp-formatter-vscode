@@ -8,17 +8,20 @@ import * as fs from 'fs';
 export default class SqlFormattingProvider implements vscode.DocumentFormattingEditProvider 
 {
   private cliPath: string;
-  constructor(private cliPathString: string) {
+  private logger: vscode.LogOutputChannel;
+  constructor(private cliPathString: string, private _logger: vscode.LogOutputChannel) {
         this.cliPath = cliPathString;        
+        this.logger = _logger;
     }
     public async Test(text: string) : Promise<string> {
      
-        var fileProvider = new FileProvider();
+      var fileProvider = new FileProvider();
 
 	    var output =  await fileProvider.formatWithCliTool(text, this.cliPath);
-
-        var parsed = JSON.parse(output);
-        return parsed.Output;
+      this.logger.appendLine(`Output from tsqlsharp cli: ${output}`);
+	    this.logger.show(true);
+      var parsed = JSON.parse(output);
+      return parsed.Output;
     }
 
 
